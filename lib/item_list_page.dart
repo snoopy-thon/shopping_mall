@@ -60,4 +60,48 @@ class _ItemListPageState extends State<ItemListPage> {
       ),
     );
   }
+
+  Widget productContainer({
+    required String productName,
+    required String productImageUrl,
+    required double price,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      child: Column(
+        children: [
+          CachedNetworkImage(
+            height: 150,
+            fit: BoxFit.cover,
+            imageUrl: productImageUrl,
+            placeholder: (context, url) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                ),
+              );
+            },
+            errorWidget: (context, url, error) {
+              return const Center(
+                child: Text("오류 발생"),
+              );
+            },
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              productName,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            child: Text("${numberFormat.format(price)}원"),
+          ),
+        ],
+      ),
+    );
+  }
 }
