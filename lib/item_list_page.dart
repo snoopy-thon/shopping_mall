@@ -58,6 +58,20 @@ class _ItemListPageState extends State<ItemListPage> {
         title: const Text('제품 리스트'),
         centerTitle: true,
       ),
+      body: GridView.builder(
+        itemCount: productList.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          childAspectRatio: 0.9,
+          crossAxisCount: 2,
+        ),
+        itemBuilder: (context, index) {
+          return productContainer(
+            productName: productList[index].productName ?? "",
+            productImageUrl: productList[index].productImageUrl ?? "",
+            price: productList[index].price ?? 0,
+          );
+        },
+      ),
     );
   }
 
