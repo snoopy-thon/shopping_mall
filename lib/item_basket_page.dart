@@ -32,6 +32,17 @@ class _ItemBasketPageState extends State<ItemBasketPage> {
     {2: 3},
   ];
 
+  double totalPrice = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    for (int i = 0; i < basketList.length; i++) {
+      totalPrice +=
+          basketList[i].price! * quantityList[i][basketList[i].productNo]!;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
