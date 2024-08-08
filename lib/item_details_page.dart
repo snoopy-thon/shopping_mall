@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:shopping_mall/models/product.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shopping_mall/constants.dart';
+import 'package:shopping_mall/item_basket_page.dart';
 
 class ItemDetailPage extends StatefulWidget {
   int productNo;
@@ -76,11 +77,20 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
         ),
       ),
       bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(20),
-          child: FilledButton(
-            onPressed: () {},
-            child: const Text("장바구니 담기"),
-          )),
+        padding: const EdgeInsets.all(20),
+        child: FilledButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  return const ItemBasketPage();
+                },
+              ),
+            );
+          },
+          child: const Text("장바구니 담기"),
+        ),
+      ),
     );
   }
 }
