@@ -356,6 +356,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
         controller: cardAuthController,
+        maxLength: 10,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "카드명의자 주민번호 앞자리",
@@ -369,9 +370,10 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
         controller: cardExpireDateController,
+        maxLength: 6,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
-          hintText: "카드 만료일",
+          hintText: "카드 만료일(YYYYMM)",
         ),
       ),
     );
@@ -382,10 +384,12 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
         controller: cardPwdTwoDigitsController,
+        maxLength: 2,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "카드 비밀번호 앞 2자리",
         ),
+        obscureText: true,
       ),
     );
   }
