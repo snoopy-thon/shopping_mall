@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:kpostal_web/kpostal_web.dart';
 import 'package:shopping_mall/constants.dart';
 import 'package:shopping_mall/models/product.dart';
+import 'package:kpostal/kpostal.dart';
+import 'package:kpostal_web/widget/kakao_address_widget.dart';
 
 class ItemCheckoutPage extends StatefulWidget {
   const ItemCheckoutPage({super.key});
@@ -182,7 +185,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: buyerEmailController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "주문자 이메일",
@@ -195,7 +198,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: buyerPhoneController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "주문자 휴대전화",
@@ -208,7 +211,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: receiverNameController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "받는 사람 이름",
@@ -221,7 +224,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: receiverPhoneController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "받는 사람 휴대 전화",
@@ -233,12 +236,50 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
   Widget receiverZipTextField() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: TextFormField(
-        controller: buyerNameController,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          hintText: "우편번호",
-        ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              readOnly: true,
+              controller: receiverZipController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: "우편번호",
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 15,
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return KakaoAddressWidget(
+                    onComplete: (KakaoAddress result) {
+                      receiverZipController.text = result.postCode;
+                      receiverAddress1Controller.text = result.address;
+                    },
+                    onClose: () {
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ));
+            },
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: 22.0,
+              ),
+              child: Text("우편 번호 찾기"),
+            ),
+          )
+        ],
       ),
     );
   }
@@ -247,7 +288,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: receiverAddress1Controller,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "기본 주소",
@@ -260,7 +301,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: receiverAddress2Controller,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "상세 주소",
@@ -273,7 +314,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: userPwdController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "비회원 주문조회 비밀번호",
@@ -286,7 +327,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: userConfirmPwdController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "비회원 주문조회 비밀번호 확인",
@@ -299,7 +340,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: cardNoController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "카드번호",
@@ -312,7 +353,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: cardAuthController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "카드명의자 주민번호 앞자리",
@@ -325,7 +366,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: cardExpireDateController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "카드 만료일",
@@ -338,7 +379,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextFormField(
-        controller: buyerNameController,
+        controller: cardPwdTwoDigitsController,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           hintText: "카드 비밀번호 앞 2자리",
