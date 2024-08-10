@@ -319,6 +319,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
           border: OutlineInputBorder(),
           hintText: "비회원 주문조회 비밀번호",
         ),
+        obscureText: true,
       ),
     );
   }
@@ -332,6 +333,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
           border: OutlineInputBorder(),
           hintText: "비회원 주문조회 비밀번호 확인",
         ),
+        obscureText: true,
       ),
     );
   }
