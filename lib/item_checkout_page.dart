@@ -3,8 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:kpostal_web/kpostal_web.dart';
 import 'package:shopping_mall/constants.dart';
 import 'package:shopping_mall/models/product.dart';
-import 'package:kpostal/kpostal.dart';
-import 'package:kpostal_web/widget/kakao_address_widget.dart';
+//import 'package:kpostal/kpostal.dart';
 
 class ItemCheckoutPage extends StatefulWidget {
   const ItemCheckoutPage({super.key});
