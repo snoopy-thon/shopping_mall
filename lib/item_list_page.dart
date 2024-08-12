@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:shopping_mall/item_details_page.dart';
 import 'package:shopping_mall/models/product.dart';
 import 'package:cached_network_image/cached_network_image.dart';
