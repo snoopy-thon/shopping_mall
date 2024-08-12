@@ -3,6 +3,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:kpostal_web/kpostal_web.dart';
 import 'package:shopping_mall/constants.dart';
 import 'package:shopping_mall/models/product.dart';
+import 'package:shopping_mall/item_order_result_page.dart';
+import 'package:shopping_mall/components/basic_dialog.dart';
 //import 'package:kpostal/kpostal.dart';
 
 class ItemCheckoutPage extends StatefulWidget {
@@ -131,6 +133,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
                     currentHintText: "비회원 주문조회 비밀번호 확인",
                     isObscure: true,
                   ),
+                  paymentMethodDropdownButton(),
                   if (selectedPaymentMethod == "카드결제")
                     Column(
                       children: [
@@ -169,7 +172,29 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(20),
         child: FilledButton(
-          onPressed: () {},
+          onPressed: () {
+            if (formKey.currentState!.validate()) {
+              if (selectedPaymentMethod == "결제수단선택") {
+                showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (context) {
+                    return BasicDialog(
+                      content: "결제수단을 선택해 주세요.",
+                      buttonText: "닫기",
+                      buttonFunction: () => Navigator.of(context).pop(),
+                    );
+                  },
+                );
+                return;
+              }
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) {
+                  return const ItemOrderResultPage();
+                },
+              ));
+            }
+          },
           child: Text("총 ${numberFormat.format(totalPrice)}원 결제하기"),
         ),
       ),
