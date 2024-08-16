@@ -38,6 +38,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             productImageContainer(),
             productNameContainer(),
             productPriceContainer(),
+            productQuantityContainer(),
           ],
         ),
       ),
@@ -62,7 +63,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   Widget productPriceContainer() {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: 20,
+        vertical: 10,
       ),
       child: Text(
         "${numberFormat.format(widget.price)}원",
@@ -73,7 +74,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   Widget productNameContainer() {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: 20,
+        vertical: 10,
       ),
       child: Text(
         widget.productName,
@@ -87,7 +88,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   Widget productImageContainer() {
     return Container(
       alignment: Alignment.center,
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(10),
       child: CachedNetworkImage(
         width: MediaQuery.of(context).size.width * 0.8,
         imageUrl: widget.productImageUrl,
@@ -105,5 +106,43 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
         },
       ),
     );
+  }
+
+  Widget productQuantityContainer() {
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text("수량: "),
+          IconButton(
+            onPressed: substractProduct,
+            icon: const Icon(Icons.remove),
+          ),
+          Text("$quantity"),
+          IconButton(
+            onPressed: addProduct,
+            icon: const Icon(
+              Icons.add,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void substractProduct() {
+    setState(() {
+      if (quantity > 1) {
+        quantity--;
+      }
+    });
+  }
+
+  void addProduct() {
+    setState(() {
+      quantity++;
+    });
   }
 }
