@@ -39,6 +39,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             productNameContainer(),
             productPriceContainer(),
             productQuantityContainer(),
+            productTotalPriceContainer(),
           ],
         ),
       ),
@@ -128,6 +129,17 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget productTotalPriceContainer() {
+    return Container(
+      child: Text(
+        "총 상품금액: ${numberFormat.format(widget.price * quantity)}",
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
