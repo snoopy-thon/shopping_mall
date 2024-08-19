@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shopping_mall/constants.dart';
@@ -12,7 +13,7 @@ class ItemBasketPage extends StatefulWidget {
 }
 
 class _ItemBasketPageState extends State<ItemBasketPage> {
-  List<Product> basketList = [
+  List<Product> productList = [
     Product(
       productNo: 1,
       productName: "노트북(Laptop)",
@@ -20,27 +21,56 @@ class _ItemBasketPageState extends State<ItemBasketPage> {
       price: 600000,
     ),
     Product(
+      productNo: 2,
+      productName: "스마트폰(Phone)",
+      productImageUrl: "https://picsum.photos/id/20/300/300",
+      price: 500000,
+    ),
+    Product(
+      productNo: 3,
+      productName: "머그컵(Cup)",
+      productImageUrl: "https://picsum.photos/id/30/300/300",
+      price: 15000,
+    ),
+    Product(
       productNo: 4,
       productName: "키보드(Keyboard)",
       productImageUrl: "https://picsum.photos/id/60/300/300",
       price: 50000,
     ),
-  ];
-
-  List<Map<int, int>> quantityList = [
-    {1: 2},
-    {4: 3},
+    Product(
+      productNo: 5,
+      productName: "포도(Grape)",
+      productImageUrl: "https://picsum.photos/id/75/200/300",
+      price: 75000,
+    ),
+    Product(
+      productNo: 6,
+      productName: "책(book)",
+      productImageUrl: "https://picsum.photos/id/24/200/300",
+      price: 24000,
+    ),
   ];
 
   double totalPrice = 0;
+  Map<String, dynamic> cartMap = {};
 
   @override
   void initState() {
     super.initState();
-    for (int i = 0; i < basketList.length; i++) {
-      totalPrice +=
-          basketList[i].price! * quantityList[i][basketList[i].productNo]!;
+    cartMap = json.decode(sharedPreferences.getString("cartMap") ?? "{}") ?? {};
+  }
+
+  double calculateTotalPrice() {
+    totalPrice = 0;
+    for (int i = 0; i < cartMap.length; i++) {
+      totalPrice += productList
+              .firstWhere((element) =>
+                  element.productNo == int.parse(cartMap.keys.elementAt(i)))
+              .price! *
+          cartMap[cartMap.keys.elementAt(i)];
     }
+    return totalPrice;
   }
 
   @override
@@ -51,15 +81,17 @@ class _ItemBasketPageState extends State<ItemBasketPage> {
         centerTitle: true,
       ),
       body: ListView.builder(
-        itemCount: basketList.length,
+        itemCount: cartMap.length,
         itemBuilder: (context, index) {
+          int productNo = int.parse(cartMap.keys.elementAt(index));
+          Product currentProduct = productList
+              .firstWhere((element) => element.productNo == productNo);
           return basketContainer(
-            productNo: basketList[index].productNo ?? 0,
-            productName: basketList[index].productName ?? "",
-            productImageUrl: basketList[index].productImageUrl ?? "",
-            price: basketList[index].price ?? 0,
-            quantity: quantityList[index][basketList[index].productNo] ?? 0,
-          );
+              productNo: productNo,
+              productName: currentProduct.productName ?? "",
+              productImageUrl: currentProduct.productImageUrl ?? "",
+              price: currentProduct.price ?? 0,
+              quantity: cartMap[productNo.toString()]);
         },
       ),
       bottomNavigationBar: Padding(
@@ -74,7 +106,7 @@ class _ItemBasketPageState extends State<ItemBasketPage> {
               ),
             );
           },
-          child: Text("총 ${numberFormat.format(totalPrice)}원 결제하기"),
+          child: Text("총 ${numberFormat.format(calculateTotalPrice())}원 결제하기"),
         ),
       ),
     );
@@ -94,6 +126,7 @@ class _ItemBasketPageState extends State<ItemBasketPage> {
         children: [
           CachedNetworkImage(
             width: MediaQuery.of(context).size.width * 0.3,
+            height: 130,
             fit: BoxFit.cover,
             imageUrl: productImageUrl,
             placeholder: (context, url) {
@@ -128,7 +161,16 @@ class _ItemBasketPageState extends State<ItemBasketPage> {
                   children: [
                     const Text("수량: "),
                     IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (cartMap[productNo.toString()] > 1) {
+                            setState(() {
+                              cartMap[productNo.toString()]--;
+
+                              sharedPreferences.setString(
+                                  "cartMap", json.encode(cartMap));
+                            });
+                          }
+                        },
                         icon: const Icon(
                           Icons.remove,
                         )),
@@ -136,13 +178,27 @@ class _ItemBasketPageState extends State<ItemBasketPage> {
                       "$quantity",
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        setState(() {
+                          cartMap[productNo.toString()]++;
+
+                          sharedPreferences.setString(
+                              "cartMap", json.encode(cartMap));
+                        });
+                      },
                       icon: const Icon(
                         Icons.add,
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        setState(() {
+                          cartMap.remove(productNo.toString());
+
+                          sharedPreferences.setString(
+                              "cartMap", json.encode(cartMap));
+                        });
+                      },
                       icon: const Icon(
                         Icons.delete,
                       ),
