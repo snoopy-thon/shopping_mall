@@ -4,6 +4,7 @@ import 'package:shopping_mall/models/product.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shopping_mall/constants.dart';
 import 'package:shopping_mall/item_basket_page.dart';
+import 'dart:convert';
 
 class ItemDetailPage extends StatefulWidget {
   int productNo;
@@ -47,6 +48,17 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
         padding: const EdgeInsets.all(20),
         child: FilledButton(
           onPressed: () {
+            Map<String, dynamic> cartMap =
+                json.decode(sharedPreferences.getString("cartMap") ?? "{}") ??
+                    {};
+
+            if (cartMap[widget.productNo.toString()] == null) {
+              cartMap.addAll({widget.productNo.toString(): quantity});
+            } else {
+              cartMap[widget.productNo.toString()] += quantity;
+            }
+            print(cartMap);
+
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) {
