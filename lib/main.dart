@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shopping_mall/item_list_page.dart';
+import 'package:shopping_mall/constants.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  initializeSharedPreferences();
   runApp(const MyApp());
 }
 
