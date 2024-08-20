@@ -51,14 +51,18 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
             Map<String, dynamic> cartMap =
                 json.decode(sharedPreferences.getString("cartMap") ?? "{}") ??
                     {};
-
+            // 장바구니에 해당 제품이 없는 경우
             if (cartMap[widget.productNo.toString()] == null) {
               cartMap.addAll({widget.productNo.toString(): quantity});
             } else {
+              // 해당 제품이 있는 경우
               cartMap[widget.productNo.toString()] += quantity;
             }
+            // 디스크에 다시 반영
+            sharedPreferences.setString("cartMap", json.encode(cartMap));
             print(cartMap);
 
+            // 장바구니 페이지로 이동
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) {
