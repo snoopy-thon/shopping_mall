@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:kpostal_web/kpostal_web.dart';
+//import 'package:kpostal_web/kpostal_web.dart';
 import 'package:shopping_mall/constants.dart';
 import 'package:shopping_mall/models/product.dart';
 import 'package:shopping_mall/item_order_result_page.dart';
 import 'package:shopping_mall/components/basic_dialog.dart';
-//import 'package:kpostal/kpostal.dart';
+import 'package:kpostal/kpostal.dart';
 
 class ItemCheckoutPage extends StatefulWidget {
   const ItemCheckoutPage({super.key});
@@ -284,15 +284,26 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
           ),
           FilledButton(
             onPressed: () {
+              // 크롬 실행시 코드
+              // Navigator.of(context).push(MaterialPageRoute(
+              //   builder: (context) {
+              //     return KakaoAddressWidget(
+              //       onComplete: (KakaoAddress result) {
+              //         receiverZipController.text = result.postCode;
+              //         receiverAddress1Controller.text = result.address;
+              //       },
+              //       onClose: () {
+              //         Navigator.of(context).pop();
+              //       },
+              //     );
+              //   },
+              // ));
               Navigator.of(context).push(MaterialPageRoute(
                 builder: (context) {
-                  return KakaoAddressWidget(
-                    onComplete: (KakaoAddress result) {
+                  return KpostalView(
+                    callback: (Kpostal result) {
                       receiverZipController.text = result.postCode;
                       receiverAddress1Controller.text = result.address;
-                    },
-                    onClose: () {
-                      Navigator.of(context).pop();
                     },
                   );
                 },
