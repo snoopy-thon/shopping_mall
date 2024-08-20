@@ -17,13 +17,12 @@ class Product {
   });
 
   // named constructor - dart에서는 "생성자에 이름을 붙여서" 여러개의 생성자를 정의할 수 있음.
-  Product.fromJson(Map<String, dynamic> json) {
-    productNo = int.parse(json['productNo']);
-    productName = json['productName'];
-    productDetails = json['productDetails'];
-    productImageUrl = json['productImageUrl'];
-    price = double.parse(json['price']);
-  }
+  Product.fromJson(Map<String, dynamic> json)
+      : this(
+            productNo: json['productNo'] as int,
+            productName: json['productName'] as String,
+            productImageUrl: json['productImageUrl'] as String,
+            price: (json['price'] as int).toDouble());
 
   // Product 객체의 멤버값을 json으로 변환하는 함수 정의
   Map<String, dynamic> toJson() {
