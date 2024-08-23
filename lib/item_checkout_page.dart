@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 //import 'package:kpostal_web/kpostal_web.dart';
@@ -6,6 +8,7 @@ import 'package:shopping_mall/models/product.dart';
 import 'package:shopping_mall/item_order_result_page.dart';
 import 'package:shopping_mall/components/basic_dialog.dart';
 import 'package:kpostal/kpostal.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ItemCheckoutPage extends StatefulWidget {
   const ItemCheckoutPage({super.key});
@@ -15,27 +18,12 @@ class ItemCheckoutPage extends StatefulWidget {
 }
 
 class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
-  List<Product> checkoutList = [
-    Product(
-      productNo: 1,
-      productName: "노트북(Laptop)",
-      productImageUrl: "https://picsum.photos/id/1/300/300",
-      price: 600000,
-    ),
-    Product(
-      productNo: 4,
-      productName: "키보드(Keyboard)",
-      productImageUrl: "https://picsum.photos/id/60/300/300",
-      price: 50000,
-    ),
-  ];
-
-  List<Map<int, int>> quantityList = [
-    {1: 2},
-    {4: 3},
-  ];
-
+  final database = FirebaseFirestore.instance;
+  Query<Product>? productListRef;
   double totalPrice = 0;
+  Map<String, dynamic> cartMap = {};
+  Stream<QuerySnapshot<Product>>? productList;
+  List<int> keyList = [];
 
   final formKey = GlobalKey<FormState>();
 
@@ -65,10 +53,32 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
   @override
   void initState() {
     super.initState();
-    for (int i = 0; i < checkoutList.length; i++) {
-      totalPrice +=
-          checkoutList[i].price! * quantityList[i][checkoutList[i].productNo]!;
+
+    try {
+      cartMap =
+          json.decode(sharedPreferences.getString("cartMap") ?? "{}") ?? {};
+    } catch (e) {
+      debugPrint(e.toString());
+      cartMap = {};
     }
+
+    cartMap.forEach(
+      (key, value) {
+        keyList.add(int.parse(key));
+      },
+    );
+
+    if (keyList.isNotEmpty) {
+      productListRef = FirebaseFirestore.instance
+          .collection("products")
+          .withConverter(
+              fromFirestore: (snapshot, _) =>
+                  Product.fromJson(snapshot.data()!),
+              toFirestore: (product, _) => product.toJson())
+          .where("productNo", whereIn: keyList);
+    }
+
+    productList = productListRef?.orderBy("productNo").snapshots();
   }
 
   @override
@@ -81,20 +91,41 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: checkoutList.length,
-              itemBuilder: (context, index) {
-                return checkoutContainer(
-                  productNo: checkoutList[index].productNo ?? 0,
-                  productName: checkoutList[index].productName ?? "",
-                  productImageUrl: checkoutList[index].productImageUrl ?? "",
-                  price: checkoutList[index].price ?? 0,
-                  quantity:
-                      quantityList[index][checkoutList[index].productNo] ?? 0,
-                );
-              },
-            ),
+            if (cartMap.isNotEmpty)
+              StreamBuilder(
+                stream: productList,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return ListView(
+                      shrinkWrap: true,
+                      children: snapshot.data!.docs.map((document) {
+                        if (cartMap[document.data().productNo.toString()] !=
+                            null) {
+                          return checkoutContainer(
+                              productNo: document.data().productNo ?? 0,
+                              productName: document.data().productName ?? "",
+                              productImageUrl:
+                                  document.data().productImageUrl ?? "",
+                              price: document.data().price ?? 0,
+                              quantity: cartMap[
+                                  document.data().productNo.toString()]);
+                        }
+                        return Container();
+                      }).toList(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("오류가 발생했습니다."),
+                    );
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    );
+                  }
+                },
+              ),
             Form(
               key: formKey,
               child: Column(
@@ -169,42 +200,73 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(20),
-        child: FilledButton(
-          onPressed: () {
-            if (formKey.currentState!.validate()) {
-              if (selectedPaymentMethod == "결제수단선택") {
-                showDialog(
-                  context: context,
-                  barrierDismissible: true,
-                  builder: (context) {
-                    return BasicDialog(
-                      content: "결제수단을 선택해 주세요.",
-                      buttonText: "닫기",
-                      buttonFunction: () => Navigator.of(context).pop(),
-                    );
-                  },
-                );
-                return;
-              }
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) {
-                  return ItemOrderResultPage(
-                      paymentMethod: selectedPaymentMethod,
-                      paymentAmount: totalPrice,
-                      receiverName: receiverNameController.text,
-                      receiverPhone: receiverPhoneController.text,
-                      zip: receiverZipController.text,
-                      address1: receiverAddress1Controller.text,
-                      address2: receiverAddress2Controller.text);
-                },
-              ));
-            }
-          },
-          child: Text("총 ${numberFormat.format(totalPrice)}원 결제하기"),
-        ),
-      ),
+      bottomNavigationBar: cartMap.isEmpty
+          ? const Center(
+              child: Text("결제할 제품이 없습니다."),
+            )
+          : StreamBuilder(
+              stream: productList,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  totalPrice = 0;
+                  snapshot.data?.docs.forEach((document) {
+                    if (cartMap[document.data().productNo.toString()] != null) {
+                      totalPrice +=
+                          cartMap[document.data().productNo.toString()] *
+                                  document.data().price ??
+                              0;
+                    }
+                  });
+                  return Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: FilledButton(
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          if (selectedPaymentMethod == "결제수단선택") {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) {
+                                return BasicDialog(
+                                  content: "결제수단을 선택해 주세요.",
+                                  buttonText: "닫기",
+                                  buttonFunction: () =>
+                                      Navigator.of(context).pop(),
+                                );
+                              },
+                            );
+                            return;
+                          }
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) {
+                              return ItemOrderResultPage(
+                                  paymentMethod: selectedPaymentMethod,
+                                  paymentAmount: totalPrice,
+                                  receiverName: receiverNameController.text,
+                                  receiverPhone: receiverPhoneController.text,
+                                  zip: receiverZipController.text,
+                                  address1: receiverAddress1Controller.text,
+                                  address2: receiverAddress2Controller.text);
+                            },
+                          ));
+                        }
+                      },
+                      child: Text("총 ${numberFormat.format(totalPrice)}원 결제하기"),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return const Center(
+                    child: Text("오류가 발생했습니다."),
+                  );
+                } else {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  );
+                }
+              },
+            ),
     );
   }
 
@@ -221,6 +283,7 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CachedNetworkImage(
+            height: 130,
             width: MediaQuery.of(context).size.width * 0.3,
             fit: BoxFit.cover,
             imageUrl: productImageUrl,
