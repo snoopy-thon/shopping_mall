@@ -37,6 +37,7 @@ class ProductOrder {
     this.totalPrice,
     this.paymentStatus,
     this.deliveryStatus,
+    this.unitPrice,
   });
 
   ProductOrder.fromJson(Map<String, dynamic> json) {
@@ -52,9 +53,9 @@ class ProductOrder {
     receiverAddress1 = json['receiverAddress1'];
     receiverAddress2 = json['receiverAddress2'];
     userPwd = json['userPwd'];
-    unitPrice = double.parse(json['unitPrice']);
+    unitPrice = json['unitPrice'];
     quantity = json['quantity'];
-    totalPrice = double.parse(json['totalPrice']);
+    totalPrice = json['totalPrice'];
     paymentStatus = json['paymentStatus'];
     paymentMethod = json['paymentMethod'];
     deliveryStatus = json['deliveryStatus'];
