@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shopping_mall/enums/payment_status.dart';
 import 'package:shopping_mall/enums/delivery_status.dart';
@@ -14,50 +15,12 @@ class MyOrderListPage extends StatefulWidget {
 }
 
 class _MyOrderListPageState extends State<MyOrderListPage> {
-  List<Product> productList = [
-    Product(
-      productNo: 1,
-      productName: "노트북(Laptop)",
-      productImageUrl: "https://picsum.photos/id/1/300/300",
-      price: 600000,
-    ),
-    Product(
-      productNo: 4,
-      productName: "키보드(Keyboard)",
-      productImageUrl: "https://picsum.photos/id/60/300/300",
-      price: 50000,
-    ),
-  ];
-
-  List<Order> orderList = [
-    Order(
-      orderId: 1,
-      productNo: 1,
-      orderDate: "2023-11-24",
-      orderNo: "20231114-123456123",
-      quantity: 2,
-      totalPrice: 1200000,
-      paymentStatus: "completed",
-      deliveryStatus: "delivering",
-    ),
-    Order(
-      orderId: 2,
-      productNo: 4,
-      orderDate: "2023-11-24",
-      orderNo: "20231114-141020312",
-      quantity: 3,
-      totalPrice: 150000,
-      paymentStatus: "waiting",
-      deliveryStatus: "waiting",
-    ),
-  ];
-
-  List<Map<int, int>> quantityList = [
-    {1: 2},
-    {4: 3},
-  ];
-
-  double totalPrice = 0;
+  final orderListRef = FirebaseFirestore.instance
+      .collection("orders")
+      .withConverter(
+          fromFirestore: (snapshot, _) =>
+              ProductOrder.fromJson(snapshot.data()!),
+          toFirestore: (product, _) => product.toJson());
 
   @override
   void initState() {
@@ -71,29 +34,73 @@ class _MyOrderListPageState extends State<MyOrderListPage> {
         title: const Text("나의 주문목록"),
         centerTitle: true,
       ),
-      body: ListView.builder(
-        itemCount: orderList.length,
-        itemBuilder: (context, index) {
-          return orderContainer(
-            productNo: productList[index].productNo ?? 0,
-            price: productList[index].price ?? 0,
-            quantity: quantityList[index][orderList[index].productNo] ?? 0,
-            productName: productList[index].productName ?? "",
-            productImageUrl: productList[index].productImageUrl ?? "",
-            orderDate: orderList[index].orderDate ?? "",
-            orderNo: orderList[index].orderNo ?? "",
-            paymentStatus: orderList[index].paymentStatus ?? "",
-            deliveryStatus: orderList[index].deliveryStatus ?? "",
-          );
+      body: StreamBuilder(
+        stream: orderListRef.orderBy("orderNo", descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ListView(
+              children: snapshot.data!.docs.map((document) {
+                final productDetailsRef = FirebaseFirestore.instance
+                    .collection("products")
+                    .withConverter(
+                        fromFirestore: (snapshot, _) =>
+                            Product.fromJson(snapshot.data()!),
+                        toFirestore: (product, _) => product.toJson())
+                    .where("productNo", isEqualTo: document.data().productNo);
+                return StreamBuilder(
+                  stream: productDetailsRef.snapshots(),
+                  builder: (context, productSnapshot) {
+                    if (productSnapshot.hasData) {
+                      Product product = productSnapshot.data!.docs.first.data();
+                      return orderContainer(
+                        productNo: document.data().productNo ?? 0,
+                        price: document.data().unitPrice ?? 0,
+                        productName: product.productName ?? "",
+                        productImageUrl: product.productImageUrl ?? "",
+                        quantity: document.data().quantity ?? 0,
+                        orderDate: document.data().orderDate ?? "",
+                        orderNo: document.data().orderNo ?? "",
+                        paymentStatus: document.data().paymentStatus ?? "",
+                        deliveryStatus: document.data().deliveryStatus ?? "",
+                      );
+                    } else if (productSnapshot.hasError) {
+                      return const Center(
+                        child: Text("오류가 발생했습니다."),
+                      );
+                    } else {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      );
+                    }
+                  },
+                );
+              }).toList(),
+            );
+          } else if (snapshot.hasError) {
+            return const Center(
+              child: Text("오류가 발생했습니다."),
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
+            );
+          }
         },
       ),
-      bottomNavigationBar: FilledButton(
-        onPressed: () {
-          Navigator.of(context).popUntil(
-            (route) => route.isFirst,
-          );
-        },
-        child: const Text("홈으로"),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(20),
+        child: FilledButton(
+          onPressed: () {
+            Navigator.of(context).popUntil(
+              (route) => route.isFirst,
+            );
+          },
+          child: const Text("홈으로"),
+        ),
       ),
     );
   }
