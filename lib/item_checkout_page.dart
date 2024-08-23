@@ -1,9 +1,13 @@
 import 'dart:convert';
-
+import 'package:intl/intl.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 //import 'package:kpostal_web/kpostal_web.dart';
 import 'package:shopping_mall/constants.dart';
+import 'package:shopping_mall/enums/delivery_status.dart';
+import 'package:shopping_mall/enums/payment_status.dart';
+import 'package:shopping_mall/models/order.dart';
 import 'package:shopping_mall/models/product.dart';
 import 'package:shopping_mall/item_order_result_page.dart';
 import 'package:shopping_mall/components/basic_dialog.dart';
@@ -237,6 +241,74 @@ class _ItemCheckoutPageState extends State<ItemCheckoutPage> {
                             );
                             return;
                           }
+
+                          List<int> bytes = utf8.encode(userPwdController.text);
+                          Digest hashPwd = sha256.convert(bytes);
+                          String orderNo =
+                              "${DateFormat("yMdhms").format(DateTime.now())}-${DateTime.now().millisecond}";
+                          snapshot.data?.docs.forEach(
+                            (document) {
+                              ProductOrder productOrder = ProductOrder(
+                                orderNo: orderNo,
+                                productNo: document.data().productNo,
+                                orderDate: DateFormat("y-M-d h:m:s")
+                                    .format(DateTime.now()),
+                                buyerName: buyerNameController.text,
+                                buyerEmail: buyerEmailController.text,
+                                buyerPhone: buyerPhoneController.text,
+                                receiverName: receiverNameController.text,
+                                receiverPhone: receiverPhoneController.text,
+                                receiverZip: receiverZipController.text,
+                                receiverAddress1:
+                                    receiverAddress1Controller.text,
+                                receiverAddress2:
+                                    receiverAddress2Controller.text,
+                                userPwd: hashPwd.toString(),
+                                paymentMethod: selectedPaymentMethod,
+                                quantity: cartMap[
+                                    document.data().productNo.toString()],
+                                unitPrice: document.data().price,
+                                totalPrice: cartMap[
+                                        document.data().productNo.toString()] *
+                                    document.data().price,
+                                paymentStatus: PaymentStatus.waiting.statusName,
+                                deliveryStatus:
+                                    DeliveryStatus.waiting.statusName,
+                              );
+                              print(jsonEncode(productOrder));
+                              try {
+                                database
+                                    .collection("orders")
+                                    .add(productOrder.toJson());
+                              } catch (e) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      content: const Padding(
+                                        padding: EdgeInsets.all(15.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Center(child: Text("오류가 발생 했습니다.")),
+                                          ],
+                                        ),
+                                      ),
+                                      actions: [
+                                        Center(
+                                          child: FilledButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text("확인")),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                return;
+                              }
+                            },
+                          );
                           Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) {
                               return ItemOrderResultPage(
